@@ -1,0 +1,296 @@
+﻿<Page x:Class="WPFALC.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:l="clr-namespace:WPFALC"
+    Title="MainPage">
+    <Grid x:Name="TheGrid">
+        <Grid.Resources>
+            <Style x:Key="ForName" TargetType="l:NameButton">
+                <Setter Property="FontSize" Value="9"/>
+                <Setter Property="Background" Value="LightYellow"/>
+                <Setter Property="Foreground" Value="Black"/>
+            </Style>
+            <l:PLVC x:Key="PLVC"/>
+            <l:GFSIC x:Key="GFSIC"/>
+            <l:FUPToV1 x:Key="FUPToV1"/>
+            <l:FUPToV2 x:Key="FUPToV2"/>
+            <l:ShowColorConverter x:Key="SCConverter"/>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="8*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <TreeView x:Name="FolderPicker" Background="AliceBlue" ItemsSource="{Binding}" SelectedItemChanged="TreeView_SelectedItemChanged">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Converter={StaticResource GFSIC}}"> 
+                    <TextBlock Text="{Binding Name}" />
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        
+        <Grid Grid.Column="1">
+            <ListView ItemsSource="{Binding Albums}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="40" Header="Count" DisplayMemberBinding="{Binding Count}"/>
+                        <GridViewColumn Width="300" Header="Album Title" DisplayMemberBinding="{Binding Name}"/>
+                        <GridViewColumn Width="50" Header="Month">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Month, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="50" Header="Year">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Year, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="80" Header="Select Photo">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button DataContext="{Binding}" Content="Select Photo" Click="ShowAlbumPhotoSelection"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="100">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding FileName}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+        
+        <Grid Grid.Row="1" Grid.ColumnSpan="2">
+            <Grid.Resources>
+                <Style x:Key="alternatingWithTriggers" TargetType="{x:Type ListViewItem}">
+                    <Style.Triggers>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                            <Setter Property="Background" Value="LightGreen"></Setter>
+                        </Trigger>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="LightPink"></Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Resources>
+            <ListView ItemsSource="{Binding Photos}" AlternationCount="2" ItemContainerStyle="{StaticResource alternatingWithTriggers}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="NoShow">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding NoShow, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Fav">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Favorite, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Sharing">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Rectangle  Width="10" Height="10">
+                                        <Rectangle.Fill>
+                                            <MultiBinding Converter="{StaticResource SCConverter}">
+                                                <Binding Path="NoShow"/>
+                                                <Binding Path="People" />
+                                            </MultiBinding>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Thumbnail">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Image Source="{Binding SmallFileName}" MouseUp="Image_MouseUp"/>
+                                        <TextBlock Text="{Binding DateStr}"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="FlickrId="/>
+                                            <TextBlock Text="{Binding FlickrId}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Photo Title">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBox VerticalAlignment="Top" TextWrapping="Wrap" Width="150" Height="50" Text="{Binding Title, Mode=TwoWay}"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <l:UBTitleButton/>
+                                            <l:UBATitleButton/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="People">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel VerticalAlignment="Top">
+                                        <TextBox TextWrapping="Wrap" Width="150" Height="50" Text="{Binding People, Mode=TwoWay, Converter={StaticResource PLVC}}"/>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                            <l:UBPeopleButton/>
+                                            <l:UBAPeopleButton/>
+                                        </StackPanel>
+                                        <ListBox Height="50" ItemsSource="{Binding GlobalPeopleList}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <UniformGrid Columns="4"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <l:NameButton Style="{StaticResource ForName}" Margin="2,2,2,2" Content="{Binding Name}"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ListBox>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Album Title">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBox VerticalAlignment="Top" TextWrapping="Wrap" Width="150" Height="50" Text="{Binding AlbumT, Mode=TwoWay}"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <l:UBAlbumTButton/>
+                                            <l:UBAAlbumTButton/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Place">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBox VerticalAlignment="Top" TextWrapping="NoWrap" Width="150" Text="{Binding Place, Mode=TwoWay}"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <l:UBPlaceButton/>
+                                            <l:UBAPlaceButton/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="120">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid HorizontalAlignment="Center">
+                                        <ProgressBar Height="15" Width="100" Maximum="100" Minimum="0" Value="{Binding FlickrUploadPercent}" Visibility="{Binding FlickrUploadPercent, Converter={StaticResource FUPToV1}}"/>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Visibility="{Binding FlickrUploadPercent}">
+                                            <TextBlock Text="{Binding FlickrUploadPercent}"/>
+                                            <TextBlock Text="%"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>    
+        </Grid>
+
+        <l:ShowBigImage x:Name="ShowBigImage" Visibility="Collapsed" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <Grid Background="BlanchedAlmond">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="4*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Source="{Binding FileName}" Stretch="Uniform"/>
+                        <Rectangle Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="FaceRect" StrokeThickness="3" Stroke="CadetBlue"></Rectangle>
+                        
+                        <StackPanel Grid.Column="1">
+                            <TextBox TextWrapping="Wrap" Width="150" Height="50" Text="{Binding People, Mode=TwoWay, Converter={StaticResource PLVC}}"/>
+                            <ListBox Width="150" ItemsSource="{Binding People}" HorizontalContentAlignment="Center">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <l:PersonTextBlock Content="{Binding}">
+                                            <ContentControl.ContentTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                        </l:PersonTextBlock>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ListBox>
+                            <ListBox Width="150" ItemsSource="{Binding GlobalPeopleList}" HorizontalContentAlignment="Center">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <l:NameButton Style="{StaticResource ForName}" Margin="2,2,2,2" Content="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                        <Button HorizontalAlignment="Left" VerticalAlignment="Center"  Content="&lt; Previous" Click="GoPrevious"/>
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Center" Content="Next &gt;" Click="GoNext"/>
+                    </Grid>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </l:ShowBigImage>
+
+        <l:ShowBigImage x:Name="AlbumImagePicker" Visibility="Collapsed" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <Grid Background="BlanchedAlmond">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontSize="30" Text="{Binding A.Name}"/>
+                        <Image Width="200" Grid.Column="1" Source="{Binding A.FileName}"/>
+                        <StackPanel Orientation="Vertical" Grid.Column="2" Width="300">
+                            <TextBlock Text="Story"/>
+                            <TextBox AcceptsReturn="True" TextWrapping="Wrap" Height="200" VerticalScrollBarVisibility="Visible" Text="{Binding A.Story, Mode=TwoWay}" LostFocus="TextBox_LostFocus"/>
+                        </StackPanel>
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="3" Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding PL}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Width="100" Source="{Binding SmallFileName}" Margin="2,2,2,2" DataContext="{Binding}" MouseUp="SelectPhoto"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer> 
+                    </Grid>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </l:ShowBigImage>
+
+    </Grid>
+</Page>
